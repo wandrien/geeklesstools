@@ -1,0 +1,35 @@
+#!/bin/bash
+
+#WID="`wmctrl -lx | sed 's/\s\s*/ /g' | cut -d' ' -f1,3,5- | dmenu -fn 'Droid Sans Mono-14' -l 30`"
+
+#WID="`wmctrl -lx | ruby dmenu_winlist.rb | dmenu -fn 'Droid Sans Mono-14' -f -l 30`
+
+#WID="`wmctrl -lx | ruby dmenu_winlist.rb | dmenu "$@" `"
+
+WID="`
+wmctrl -lx | awk -v blacklist="${WM_CLASS_BLACKLIST}" '
+BEGIN {split(blacklist, class_blacklist)}
+
+{
+	split($3, class_arr, /\./)
+	if (class_arr[2] != "")
+		class = class_arr[2];
+	else
+		class = class_arr[1];
+
+	for (i in class_blacklist)
+	{
+		if (class_blacklist[i] == class)
+			next;
+	}
+
+	title = $5" "$6" "$7" "$8" "$9" "$10" "$11" "$12" "$13" "$14" "$15" "$16" "$17" "$18" "$19" "$20" "$21" "$22" "$23" "$24" "$25
+	if (index(title, class) == 0)
+		title = class" "title
+	print $1" "title
+}' | sed 's/[[:space:]]*$//' | dmenu "$@" `"
+
+
+if [[ x"$WID" != x ]] ; then
+	echo "$WID" | cut -d' ' -f1 | xargs wmctrl -ia 
+fi

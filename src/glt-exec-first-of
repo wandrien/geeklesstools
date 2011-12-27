@@ -1,0 +1,53 @@
+#!/bin/bash
+
+COMMAND="$1"
+shift
+
+if [[ "$COMMAND" = "--help" || "$COMMAND" = "-h" ]] ; then
+	echo "glt-exec-first-of searches first existing command in the PATH and runs it with the specified arguments."
+	echo "Usage:"
+	echo "       glt-exec-first-of [options] commandlist [args...]"
+	echo "       or"
+	echo "       glt-exec-first-of [options] -e varname [args...]"
+	echo "where"
+	echo "  commandlist    comma sepatared list of the commands"
+	echo "  varname        name of the environment variable containing command list"
+	echo "  args           arguments passed to the selected command"
+	echo "options"
+	echo "  -p             just print selected command, do not run"
+	exit 0;
+fi
+
+PRINT=
+if [[ "$COMMAND" = "-p" || "$COMMAND" = "--print" ]] ; then
+	PRINT=1
+	COMMAND="$1"
+	shift
+fi
+
+if [[ "$COMMAND" = "-e" ]] ; then
+	e='echo ${'"$1"'}'
+	COMMAND="`eval $e`"
+	shift
+fi
+
+IFS=':' read -a COMMANDS <<<"$COMMAND"
+
+for c in "${COMMANDS[@]}" ; do
+	read -a c <<<"$c"
+	if which "${c[0]}" &> /dev/null ; then
+		if [[ -z "$PRINT" ]] ; then
+			exec -a "${c[0]}" "${c[@]}" "$@"
+		else
+			c=("${c[@]}" "$@")
+			for p in "${c[@]}" ; do
+				printf '%q ' "$p"
+			done
+			printf '\n'
+			exit 0
+		fi
+	fi
+done
+
+echo "$0: no command found: ${COMMANDS[@]}" > /dev/stderr
+exit 1

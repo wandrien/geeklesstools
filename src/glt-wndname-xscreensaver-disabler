@@ -1,0 +1,13 @@
+#!/bin/bash
+
+DELAY=30
+
+while true ; do
+	sleep $DELAY
+	NAME="$(xprop -id `xprop -root _NET_ACTIVE_WINDOW | egrep -o '0x[^ ]+$'` _NET_WM_NAME | cut -d= -f2-)"
+	if (echo "$NAME" | "$@" &>/dev/null ) ; then
+		#echo Match for "$NAME"
+		xscreensaver-command -deactivate &>/dev/null &
+	fi
+done
+
