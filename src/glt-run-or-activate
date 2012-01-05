@@ -1,0 +1,19 @@
+#!/bin/bash
+
+WM_CLASS="$1"
+
+if [[ "$1" = "-c" || "$1" = "--class" ]] ; then
+        shift
+	WM_CLASS="$1"
+	shift
+fi
+
+l="$(wmctrl -lx | awk '{print $1 "\n" $3}' | grep -B1 "$WM_CLASS")"
+
+if [[ -n "$l" ]] ; then
+	read wid < <( echo "$l" )
+	wmctrl -ia $wid
+else
+	exec -a "$1" "$@"
+fi
+
